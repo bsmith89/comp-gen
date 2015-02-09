@@ -16,6 +16,7 @@ meta/*
 tre/*
 img/*
 profile_default/*
+env/
 
 # But white-list these files
 !*/README.md
