@@ -8,6 +8,37 @@ figs:
 
 .PHONY: all docs figs
 
+
+
+# --------------
+#  Data Recipes
+# --------------
+
+# This is very not-editable, since it's just line ranges for the mapping
+# and line ranges for the tree.
+meta/bacteria.names.tsv: raw/RAxML_3473_1_flux_trim4_10.19.14.nex
+	cat $> \
+		| sed -n '18,1164p' \
+		| awk '{print $$1"\t"$$2}' \
+		| sed 's:[,;]::' \
+		> $@
+
+tre/bacteria.nwk: raw/RAxML_3473_1_flux_trim4_10.19.14.nex
+	cat $> \
+		| sed -n '1165p' \
+		| cut -d ' ' -f 5 \
+		> $@
+
+tre/bacteria.names.nwk: scripts/rename_tree.py tre/bacteria.nwk \
+                        meta/bacteria.names.tsv
+	$^ > $@
+
+meta/K0.tsv: ./scripts/clean_tables.py ./raw/2.6.15_KEGG_K0.csv
+	$^ > $@
+
+meta/M0.tsv: ./scripts/clean_tables.py ./raw/2.6.15_KEGG_M0.csv
+	$^ > $@
+
 # -----------------------
 #  Analysis Recipes
 # -----------------------
