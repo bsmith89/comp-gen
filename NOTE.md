@@ -21,3 +21,9 @@ Here we will explore the genomic content which goes along with that indicator.
 I'm going to try and test each gene for a relationship with copy number.
 Usually this would require accounting for phylogenetic relationship,
 so instead I'm going to use sister-paired taxa, to control for this.
+
+## 2015-02-09 ##
+### Prototyping a Sister-pairs Analysis ###
+I removed lines 15 and 16 and renamed the RAxML tree to `tre/bacteria.nex`.
+This allows the file to be opened with figtree.
+
