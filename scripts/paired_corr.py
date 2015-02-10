@@ -2,6 +2,7 @@
 
 from sys import argv, stdout
 import numpy as np
+import scipy.stats as stats
 from pandas import read_table, merge
 from random import shuffle
 
@@ -15,10 +16,13 @@ paired = merge(data, data.apply(np.random.permutation),
 paired['delta_log_16S'] = np.log2(paired['copies16S_A']) - \
                       np.log2(paired['copies16S_B'])
 
-correlation = {}
+stdout.write("gene\tpearson\tspearman\tkendall\n")
 for gene in genes:
-    correlation = np.corrcoef(paired['delta_log_16S'],
-                              paired[gene + "_A"] - paired[gene + "_B"]
-                             )[0,1]
-    if not np.isnan(correlation):
-        stdout.write("%s\t%f\n" % (gene, correlation))
+    delta_log16S = paired['delta_log_16S']
+    delta_gene = paired[gene + "_A"] - paired[gene + "_B"]
+    pearson = stats.pearsonr(delta_log16S, delta_gene)[0]
+    spearman = stats.spearmanr(delta_log16S, delta_gene)[0]
+    kendall = stats.kendalltau(delta_log16S, delta_gene)[0]
+
+    # if not np.isnan(correlation):
+    stdout.write("%s\t%f\t%f\t%f\n" % (gene, pearson, spearman, kendall))
