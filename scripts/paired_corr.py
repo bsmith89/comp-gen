@@ -3,18 +3,20 @@
 from sys import argv, stdout
 import numpy as np
 import scipy.stats as stats
-from pandas import read_table, merge
-from random import shuffle
+from pandas import read_table, merge, Index
+from random import sample
 
 np.random.seed(1)  # So that I get the same result every time.
                    # Is this good practice?
 
 data = read_table(argv[1])
 genes = data.columns[2:]
-paired = merge(data, data.apply(np.random.permutation),
+shuffled = data.copy()
+shuffled.index = Index(sample(list(shuffled.index), len(shuffled)))
+paired = merge(data, shuffled,
                left_index=True, right_index=True, suffixes=("_A", "_B"))
 paired['delta_log_16S'] = np.log2(paired['copies16S_A']) - \
-                      np.log2(paired['copies16S_B'])
+                          np.log2(paired['copies16S_B'])
 
 stdout.write("gene\tpearson\tspearman\tkendall\n")
 for gene in genes:
