@@ -1,30 +1,111 @@
 #!/usr/bin/env python3
 
 from sys import argv, stdout
-import numpy as np
-import scipy.stats as stats
-from pandas import read_table, merge, Index
-from random import sample
+from Bio.Phylo import read as read_tree
+from pandas import read_table, DataFrame
+from itertools import chain, permutations
+from scipy.stats import pearsonr, spearmanr, kendalltau
+from numpy import log2
 
-np.random.seed(1)  # So that I get the same result every time.
-                   # Is this good practice?
+def differ(a, b, by_all=False):
+    if not by_all:
+        return not a == b
+    else:
+        return not any([x == y for x, y in zip(a, b)])
 
-data = read_table(argv[1])
-genes = data.columns[2:]
-shuffled = data.copy()
-shuffled.index = Index(sample(list(shuffled.index), len(shuffled)))
-paired = merge(data, shuffled,
-               left_index=True, right_index=True, suffixes=("_A", "_B"))
-paired['delta_log_16S'] = np.log2(paired['copies16S_A']) - \
-                          np.log2(paired['copies16S_B'])
+def mixed_clades(clade, key, by_all=False):
+    """Search for phylogenetically independent mixed clades.
 
-stdout.write("gene\tpearson\tspearman\tkendall\n")
-for gene in genes:
-    delta_log16S = paired['delta_log_16S']
-    delta_gene = paired[gene + "_A"] - paired[gene + "_B"]
-    pearson = stats.pearsonr(delta_log16S, delta_gene)[0]
-    spearman = stats.spearmanr(delta_log16S, delta_gene)[0]
-    kendall = stats.kendalltau(delta_log16S, delta_gene)[0]
+    Find the maximum number of evolutionarily independent taxon pairs.
+    See Maddison 2000, J. theor. Bio.
 
-    # if not np.isnan(correlation):
-    stdout.write("%s\t%f\t%f\t%f\n" % (gene, pearson, spearman, kendall))
+    The function is applied recursively to a node, returning and mixed
+    clades above that node, and the key value of that node.
+
+    The key value of a node is the key value of all taxa above that
+    node which are not already paired.
+
+    """
+    if clade.is_terminal():
+        return ([], key(clade))
+
+    paired_above = []
+    subclade_values = []
+    for subclade in clade.clades:
+        paired, value = mixed_clades(subclade, key, by_all=by_all)
+        paired_above.extend(paired)
+        if value:
+            subclade_values.append(value)
+
+    if not subclade_values:
+        return (paired_above, None)
+    elif len(subclade_values) == 1:
+        return (paired_above, subclade_values[0])
+    elif differ(subclade_values[0], subclade_values[1], by_all=by_all):
+        terminals = clade.get_terminals()
+        # Remove any taxa which have already been paired above.
+        pair = list(set(terminals) - set(chain(*paired_above)))
+        return (paired_above + [pair], None)
+    else:
+        return (paired_above, subclade_values[0])
+    # TODO: When you are looking for pairs differing in both traits,
+    # how do you account for the loss of some combinations of values in this
+    # step.
+
+def choose_pairs(taxa, key, by_all=False):
+    """Choose pairs of taxa which differ by the key.
+
+    If *by_all* then each element of the key value must be different.
+
+    Will return the first pair which satisfy this test.
+
+    """
+    for pair in permutations(taxa, 2):
+        if differ(*[key(taxon) for taxon in pair], by_all=by_all):
+            return pair
+
+def indep_pairs(clade, key, by_all=False):
+    return [choose_pairs(indep_sets, key, by_all=by_all)
+            for indep_sets in mixed_clades(clade, key, by_all=by_all)[0]]
+
+def main():
+    tree = read_tree(argv[1], 'newick', rooted=True)
+    characters = read_table(argv[2])
+    characters.index = characters.treelabel
+    characters["log_copies16S"] = log2(characters.copies16S)
+    char1, char2 = "log_copies16S", argv[3]
+
+    pairs = indep_pairs(tree.clade,
+                        lambda x: (characters[char1][x.name],
+                                   characters[char2][x.name]))
+    data = DataFrame({"%s_A" % char1: [characters[char1][pair[0].name]
+                                       for pair in pairs],
+                      "%s_B" % char1: [characters[char1][pair[1].name]
+                                       for pair in pairs],
+                      "%s_A" % char2: [characters[char2][pair[0].name]
+                                       for pair in pairs],
+                      "%s_B" % char2: [characters[char2][pair[1].name]
+                                       for pair in pairs]})
+    data['delta_%s' % char1] = data['%s_A' % char1] - data['%s_B' % char1]
+    data['delta_%s' % char2] = data['%s_A' % char2] - data['%s_B' % char2]
+
+    covar1 = data['delta_%s' % char1]
+    covar2 = data['delta_%s' % char2]
+    pr = pearsonr(covar1, covar2)
+    sr = spearmanr(covar1, covar2)
+    kt = kendalltau(covar1, covar2)
+
+    stdout.write("(%s) x (%s)\n"
+                 "---------------------------\n"
+                 "no. pairs: %d\n"
+                 "pearson: %f (%f)\n"
+                 "spearman: %f (%f)\n"
+                 "kendall: %f (%f)\n"
+                 %
+                 (char1, char2, len(pairs),
+                 pr[0], pr[1], sr[0], sr[1], kt[0], kt[1]))
+
+
+if __name__ == "__main__":
+    main()
+

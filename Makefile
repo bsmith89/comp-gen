@@ -43,9 +43,6 @@ meta/M0.tsv: ./scripts/clean_tables.py ./raw/2.6.15_KEGG_M0.csv
 #  Analysis Recipes
 # -----------------------
 
-res/%.paired_corr.tsv: ./scripts/paired_corr.py/ meta/%.tsv
-	$^ > $@
-
 # -----------------------
 #  Documentation Recipes
 # -----------------------
