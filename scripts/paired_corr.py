@@ -68,26 +68,26 @@ def indep_pairs(clade, key, by_all=False):
     return [choose_pairs(indep_sets, key, by_all=by_all)
             for indep_sets in mixed_clades(clade, key, by_all=by_all)[0]]
 
-def main():
+def contrast_pairs(pairs, characters, **keys):
+    """Contrast each taxon for each key value in keys."""
+    return DataFrame(dict(("delta_%s" % trait,
+                           [keys[trait](tax1) - keys[trait](tax2)
+                            for tax1, tax2 in pairs])
+                           for trait in keys))
+
+if __name__ == "__main__":
     tree = read_tree(argv[1], 'newick', rooted=True)
     characters = read_table(argv[2])
     characters.index = characters.treelabel
     characters["log_copies16S"] = log2(characters.copies16S)
     char1, char2 = "log_copies16S", argv[3]
 
-    pairs = indep_pairs(tree.clade,
-                        lambda x: (characters[char1][x.name],
-                                   characters[char2][x.name]))
-    data = DataFrame({"%s_A" % char1: [characters[char1][pair[0].name]
-                                       for pair in pairs],
-                      "%s_B" % char1: [characters[char1][pair[1].name]
-                                       for pair in pairs],
-                      "%s_A" % char2: [characters[char2][pair[0].name]
-                                       for pair in pairs],
-                      "%s_B" % char2: [characters[char2][pair[1].name]
-                                       for pair in pairs]})
-    data['delta_%s' % char1] = data['%s_A' % char1] - data['%s_B' % char1]
-    data['delta_%s' % char2] = data['%s_A' % char2] - data['%s_B' % char2]
+    key1 = lambda x: characters[char1][x.name]
+    key2 = lambda x: characters[char2][x.name]
+    key = lambda x: (key1(x), key2(x))
+    pairs = indep_pairs(tree.clade, key)
+    data = contrast_pairs(pairs, characters,
+                          **{char1: key1, char2: key2})
 
     covar1 = data['delta_%s' % char1]
     covar2 = data['delta_%s' % char2]
@@ -104,8 +104,3 @@ def main():
                  %
                  (char1, char2, len(pairs),
                  pr[0], pr[1], sr[0], sr[1], kt[0], kt[1]))
-
-
-if __name__ == "__main__":
-    main()
-

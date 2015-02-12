@@ -38,3 +38,19 @@ selecting a maximal number of taxon pairs which differ in both characters.
 I intend to use this to devise paired sets for each character contrast.
 I will also have to calculate a null distribution with a permutation test
 BEFORE matching pairs.
+
+## 2015-02-11 ##
+### Independent pairs ###
+I managed to get the algorithm working.
+Now I just need to package it into a python script which will do the full
+analysis.
+
+## 2015-02-12 ##
+### Phylogenetically Independent Correlations ###
+I'd like to use evolutionarily independent pairing to test the correlations
+between various genes and 16S copy number (actually _log_ copy number.
+Ultimately I might want to compare it pairwise by genes).
+
+
+
+
