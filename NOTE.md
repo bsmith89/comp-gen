@@ -51,6 +51,17 @@ I'd like to use evolutionarily independent pairing to test the correlations
 between various genes and 16S copy number (actually _log_ copy number.
 Ultimately I might want to compare it pairwise by genes).
 
+## 2015-02-15 ##
+### Cont. ###
+I can run all of the basic correlations for each K0 in about 10 minutes.
+M0 take far less time.
+All results have been saved to `res/*0.paired_corr.tsv`.
+I get a few hundred results for K0s with more than 50 pairs considered and
+p-values less than 0.005.
+The top two hits are 16S and 23S rRNA genes, as you might expect.
+Hits further down the list are more interesting.  What I should now do is
+compare these correlations with a null distribution based on a permutation
+test.
 
 
-
+## 2015-02-16 ##
