@@ -43,6 +43,10 @@ meta/M0.tsv: ./scripts/clean_tables.py ./raw/2.6.15_KEGG_M0.csv
 #  Analysis Recipes
 # -----------------------
 
+res/%.pairwise_log16S_corr.tsv: scripts/pairwise_log16S_corr.py \
+                                tre/bacteria.names.nwk meta/%.tsv
+	$^ > $@
+
 # -----------------------
 #  Documentation Recipes
 # -----------------------
