@@ -5,4 +5,4 @@ pandas>=0.13.1
 matplotlib>=1.3.1
 patsy>=0.3.0
 statsmodels>=0.6.0
-git+https://github.com/biopython/biopython.git@biopython-165#egg=biopython
+biopython>=1.65
