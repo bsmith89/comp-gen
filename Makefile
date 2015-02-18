@@ -27,10 +27,12 @@ make submodules
 make venv
 	Create the virtualenv if absent and install from `requirements.pip`.
 
+
 endef
 export HELP_MSG
 help:
 	@echo "$$HELP_MSG"
+	@make -h
 
 
 
@@ -207,7 +209,7 @@ venv/bin/activate: ${PIP_REQUIREMENTS}
 	[ -f $@ ] || python3 -m venv venv
 	source $@ ; \
 	for req_file in ${PIP_REQUIREMENTS} ; do \
-		pip install -r $$req_file ; \
+		pip install --upgrade -r $$req_file ; \
 	done
 	touch $@
 
