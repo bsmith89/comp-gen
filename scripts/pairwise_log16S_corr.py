@@ -28,7 +28,8 @@ def _pair_that_differ(mapping):
             # there's no mixed pairs.
             return None
     # If these things aren't true, then let's search for a mixed pair.
-    for key1, key2 in permutations(mapping, 2):
+    # The keys have to be sorted here, or else the result is non-deterministic.
+    for key1, key2 in permutations(sorted(mapping.keys()), 2):
         seq1, seq2 = mapping[key1], mapping[key2]
         if np.all([val1 != val2 for val1, val2 in zip(seq1, seq2)]):
             return key1, key2
@@ -167,7 +168,7 @@ def null_corr(trait_table, clade, cols=[2]):
     trait_table = trait_table[original_columns]
     return trait_corr(trait_table, clade)
 
-if __name__ == "__main__":
+def main():
     tree = read_tree(argv[1], 'newick', rooted=True)
     characters = read_table(argv[2])
     characters.index = characters.treelabel
@@ -191,3 +192,6 @@ if __name__ == "__main__":
                                 spearman_r, spearman_p,
                                 kendall_t , kendall_p]))
         stdout.write("\n")
+
+if __name__ == '__main__':
+    main()

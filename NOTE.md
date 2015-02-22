@@ -64,4 +64,19 @@ compare these correlations with a null distribution based on a permutation
 test.
 
 
-## 2015-02-16 ##
+## 2015-02-19 ##
+
+
+### Fixed the non-deterministic behavior of `scripts/pairwise_log16S_corr.py` ###
+I found that each run of the pairwise correlation script gave a different output.
+This didn't make sense, and scared me.
+
+Turns out that I was assuming my dictionary keys would be iterated back in the
+same order each time.
+This was incorrect.
+
+
+### Phylogenetically Independent Correlations ###
+I re-did some of the analysis that had been done over the last few days.
+This has allowed me to clean up a few figures, and think critically about
+these results.
