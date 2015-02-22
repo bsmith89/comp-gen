@@ -25,7 +25,7 @@ def _pair_that_differ(mapping):
     for key_series in zip(*mapping.values()):
         if len(set(key_series)) == 1:
             # If any value series has only one values, then
-            # there's no mixed pairs.
+            # there are no mixed pairs.
             return None
     # If these things aren't true, then let's search for a mixed pair.
     # The keys have to be sorted here, or else the result is non-deterministic.
@@ -186,11 +186,12 @@ def main():
                                             tuple([float('nan')]*2))
         kendall_t, kendall_p   = result.get('kendalltau',
                                             tuple([float('nan')]*2))
-        stdout.write("\t".join(str(x) for x in
-                               [trt2      , pairs,
-                                pearson_r , pearson_p,
-                                spearman_r, spearman_p,
-                                kendall_t , kendall_p]))
+        output = "\t".join([str(x) for x in
+                           [trt2       , pairs,
+                            pearson_r  , pearson_p,
+                            spearman_r , spearman_p,
+                            kendall_t  , kendall_p]])
+        stdout.write(output)
         stdout.write("\n")
 
 if __name__ == '__main__':
