@@ -25,7 +25,7 @@ make submodules
 	Initialize and update all requirements.
 
 make venv
-	Create the virtualenv if absent and install from `requirements.pip`.
+	Create the virtualenv if absent and install/update python requirements.
 
 
 endef
