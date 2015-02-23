@@ -214,3 +214,24 @@ This figure shows that for traits which passed a 0.001 ("highly significant")
 p-value threshold, the majority of them are no longer under that
 threshold when we permute. (2.7% have p-values under this cutoff.
 We would have expected 0.1%).
+
+I really don't know if this is a good thing or not.  At what point can I say,
+"yes, I know that there's bias, but I am just going to increase my p-value
+threshold and ignore it"?
+
+### Correcting for bias ###
+(date:2015-02-23)
+In order to avoid the bias which appears to arise with this approach,
+I am going to try a few things.
+
+#### Alternative sampling schemes ####
+Can we still achieve the required power if we only pick pairs based on
+contrasts in 16S copy number, not the other trait as well?
+Will this remove the bias that we're seeing?
+Even if it doesn't, having just one set of pre-picked pairs will make
+a permutation test much more computationally feasible, since we won't have
+to re-pick them each time, just randomize the second trait.
+(On a side note, I need a better term than "second trait".
+"Focal trait", maybe?)
+
+#### Permutation test to calculate p-values ####
