@@ -18,6 +18,40 @@ Here we will explore the genomic content which goes along with that indicator.
 # Notebook #
 ## 2015-02-06 ##
 ### Prototyping a Sister-pairs Analysis ###
+
+## Glossary ##
+[Kendall's $\tau$](https://en.wikipedia.org/wiki/Kendall_tau_rank_correlation_coefficient)
+:   A non-parametric measure of the correlation between two vectors.
+    It is very similar to Spearman's $\rho$, but has some slightly superior
+    statistical properties.
+
+Focal trait
+:   A genomic trait which is compared to 16S copy number in the search
+    for a statistical correlation.
+    In this project, these traits are either K0 orthologous groups,
+    or M0 modules.
+    The trait value can either be binary (presence/absence) or positive
+    integers (number of copies).
+    For example, the 16S ribosomal RNA gene (K01977) itself can have any value
+    between 0 and 15.
+
+Contrast table
+:   A table of two vectors encoding the arithmetic differences between
+    paired species in two traits.
+    For example if two pairs (4 taxa) have the following trait values
+    for two traits:
+
+    Pair    Trait 1 (A)    Trait 1 (B)    Trait 2 (A)    Trait 2 (B)
+    ----    -----------    -----------    -----------    -----------
+    A/B     1              2              5              3
+    C/D     2              1              4              5
+
+    then the contrast table will be:
+
+    Pair    Trait 1    Trait 2
+    ----    -------    -------
+    A/B     -1         2
+    C/D     1          -1
 I'm going to try and test each gene for a relationship with copy number.
 Usually this would require accounting for phylogenetic relationship,
 so instead I'm going to use sister-paired taxa, to control for this.
