@@ -233,7 +233,8 @@ Will this remove the bias that we're seeing?
 Even if it doesn't, having just one set of pre-picked pairs will make
 a permutation test much more computationally feasible, since we won't have
 to re-pick them each time, just randomize the second trait.
-(On a side note, I need a better term than "second trait".
-"Focal trait", maybe?)
+
+While this approach may mitigate the effects of bias, it may also
+decrease our power to detect correlations, which would be unfortunate.
 
 #### Permutation test to calculate p-values ####
