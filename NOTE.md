@@ -36,20 +36,22 @@ Focal trait
 Contrast table
 :   A table of two vectors encoding the arithmetic differences between
     paired species in two traits.
-    For example if two pairs (4 taxa) have the following trait values
-    for two traits:
+    For example:
 
     Pair    Trait 1 (A)    Trait 1 (B)    Trait 2 (A)    Trait 2 (B)
     ----    -----------    -----------    -----------    -----------
     A/B     1              2              5              3
     C/D     2              1              4              5
 
-    then the contrast table will be:
+     Table: The trait values of four taxa for two traits
+
 
     Pair    Trait 1    Trait 2
     ----    -------    -------
     A/B     -1         2
     C/D     1          -1
+
+     Table: Resulting contrast table
 
 
 ## Sister-Pairs Analysis ##
