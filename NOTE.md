@@ -211,6 +211,7 @@ be accounted for by this bias?
 I can be a liiiitle comforted by the next result:
 
 ![](static/2015-02-20_fig2.png)
+(Figure 4?)
 
 This figure shows that for traits which passed a 0.001 ("highly significant")
 p-value threshold, the majority of them are no longer under that
@@ -243,3 +244,68 @@ Nonetheless, $\tau$ and p-values are correlated across pair selection
 strategies
 
 #### Permutation test to calculate p-values ####
+
+#### False discovery rate with a permutation test ####
+Is it valid to:
+-  Assume that the null distribution of p-values for my (very mixed)
+   population of traits is given by a permutation for every gene.
+-  Asses the fraction of these permutation statistics which are
+   counterfactually marked as significant as a function of the p-value
+   threshold (or a $\tau$ threshold should work too, right?)
+-  Conclude that at a given threshold I _know_ the fraction of true negatives
+   which have incorrectly been marked as positives.
+-  Choose a p-value threshold which keeps this number as low as I'd like.
+
+Basically what I'm proposing is to use the permutation test distribution from
+this figure (4?) to make a statement about my
+[false discover rate](https://en.wikipedia.org/wiki/False_discovery_rate).
+
+In simulation this seems to work as I expect.
+I simulated a set of either correlated (or not) vectors of values
+(multivariate normal distribution).
+The distribution of correlations included 500 which were uncorrelated and
+500 which had correlations normally distributed around $0$, with a variance
+of $0.2$.
+From these 1000 vector-pairs (each length 100) I estimated Kendall's
+$\tau$, as well as $\tau$ under the null hypothesis which I got from permuting
+one of the vectors.
+I plotted the absolute values of those two sets of estimates along with the
+"true" correlation values.
+
+![](static/2015-02-23_fig1.png)
+
+On a histogram of just the absolute values of $\tau$ from the null distribution,
+I chose a threshold which left me with only 5% of the null $\tau$ estimates.
+
+![](static/2015-02-23_fig2.png)
+
+This represents a false positive rate of $0.05$.
+I then applied this threshold to categorize the estimates of true
+$\tau$ into correlated/not correlated categories.
+From this process I got around 25 false positives (correlations which
+came from a parameter of 0 but which had a $\hat{\tau_{xy}}$<!--_-->
+above the threshold) and about 190 true positives (remember the average effect
+size was pretty small and the vectors were only of length 100).
+
+As I vary my rate of false positives given a null distribution,
+I get a linearly increasing number of false positives (a tautology) and
+a quickly rising early, but saturating late, number of true positives.
+
+![](static/2015-02-23_fig3.png)
+
+This approach should allow me to set my maximum number of false positives
+arbitrarily.
+However, I will not be able to know what fraction of my "hits" are actually
+false positive, because the number of _true_ correlations which conform to
+the null hypothesis is unknown.
+Both the distribution of effect sizes has a large impact on my false discovery
+rate.
+
+[Further](https://en.wikipedia.org/wiki/Multiple_comparisons_problem),
+[reading](http://stats.stackexchange.com/questions/60460/permutation-test-for-multiple-correlation-test-statistics).
+
+I think I may be able to say something about the maximum number of false
+positives, since it must be around $\hat{q_\alpha} \times m$<!--_--> if
+$m = m_0$.
+Maybe we can put upper bounds on it given just knowledge of the number of tests
+which did _not_ come back as discoveries.
