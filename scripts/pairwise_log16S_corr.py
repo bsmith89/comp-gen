@@ -112,42 +112,46 @@ def contrast_pairs(trait_table, pairs):
         data[trait] = tax1_values - tax2_values
     return DataFrame(data, index=pairs)
 
-def trait_corr(trait_table, clade):
+def trait_corr(trait_table, clade, mixed='both', corrfunc = kendalltau):
     """Calculate the correlation between two traits based on independent pairs.
     
     Takes a DataFrame of two traits, indexed by the names of leaves on
     the tree and a Biopython tree object.
     
     """
-    methods = [pearsonr, spearmanr, kendalltau]
-
     trait1, trait2 = trait_table.columns
     make_key_func = lambda trait: (lambda x: trait_table[trait][x])
     key_func1 = make_key_func(trait1)
     key_func2 = make_key_func(trait2)
 
-    pairs = mixed_pairs(clade, key_func1, key_func2)
-    output = {'pairs': len(pairs)}
+    if mixed == 'both':
+        pairs = mixed_pairs(clade, key_func1, key_func2)
+    elif mixed == 'first':
+        pairs = mixed_pairs(clade, key_func1)
+    elif mixed == 'second':
+        pairs = mixed_pairs(clade, key_func2)
+    else:
+        key_func = make_key_func(mixed)
+        try:
+            pairs = mixed_pairs(clade, key_func)
+        except Exception as err:
+            raise err
+
     if len(pairs) == 0:
-        return output
+        return pairs, float('nan'), float('nan')
 
     contrast = contrast_pairs(trait_table, pairs)
-
     if np.any(contrast.abs().sum() == 0):
-        for meth in methods:
-            output[meth.__name__] = float('nan')
+        return pairs, float('nan'), float('nan')
     else:
-        for meth in methods:
-            output[meth.__name__] = meth(contrast[trait1],
-                                         contrast[trait2])
-    return output
+        corr, p_value = corrfunc(contrast[trait1], contrast[trait2])
+        return pairs, corr, p_value
 
-def permute_data(table, cols):
-    """Permute columns of a DataFrame."""
-    columns = table.columns[cols]
-    table = table.copy()
-    table[columns] = table.apply(np.random.permutation)[columns]
-    return table
+def permute_data(table, columns):
+    """Permute particular columns of a DataFrame."""
+    out = table.copy()
+    out[columns] = table.apply(np.random.permutation)[columns]
+    return out
 
 def null_corr(trait_table, clade, cols=[2]):
     """Pull from the null distribution of correlations.
@@ -159,6 +163,8 @@ def null_corr(trait_table, clade, cols=[2]):
     0: the labels
     1: the first column
     2: the second column
+
+    # TODO: Fix up this function.
     
     """
     original_columns = trait_table.columns
@@ -175,24 +181,13 @@ def main():
     characters['log_copies16S'] = np.log2(characters.copies16S)
     trt1 = 'log_copies16S'
     traits = characters.columns[2:-1]
+    pairs = mixed_pairs(tree.clade, lambda taxon: characters[trt1][taxon])
 
-    data = []
+    print("trait1", "trait2", "kendall_t", "kendall_p", sep="\t", file=stdout)
     for trt2 in traits:
-        result = trait_corr(characters[[trt1, trt2]], tree.clade)
-        pairs = result.get('pairs')
-        pearson_r, pearson_p   = result.get('pearsonr',
-                                            tuple([float('nan')]*2))
-        spearman_r, spearman_p = result.get('spearmanr',
-                                            tuple([float('nan')]*2))
-        kendall_t, kendall_p   = result.get('kendalltau',
-                                            tuple([float('nan')]*2))
-        output = "\t".join([str(x) for x in
-                           [trt2       , pairs,
-                            pearson_r  , pearson_p,
-                            spearman_r , spearman_p,
-                            kendall_t  , kendall_p]])
-        stdout.write(output)
-        stdout.write("\n")
+        contrast = contrast_pairs(characters[[trt1, trt2]], pairs)
+        kendall_t, kendall_p = kendalltau(contrast[trt1], contrast[trt2])
+        print(trt1, trt2, kendall_t, kendall_p, sep="\t", file=stdout)
 
 if __name__ == '__main__':
     main()

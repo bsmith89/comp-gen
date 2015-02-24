@@ -236,5 +236,10 @@ to re-pick them each time, just randomize the second trait.
 
 While this approach may mitigate the effects of bias, it may also
 decrease our power to detect correlations, which would be unfortunate.
+You can see this in action when I re-check all 240 K0 highly "hits"
+(p-value < 0.001) in the 358 pairs with mixed 16S copy number;
+only 158 (66%) are still highly significant.
+Nonetheless, $\tau$ and p-values are correlated across pair selection
+strategies
 
 #### Permutation test to calculate p-values ####
