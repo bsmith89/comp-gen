@@ -243,9 +243,40 @@ only 158 (66%) are still highly significant.
 Nonetheless, $\tau$ and p-values are correlated across pair selection
 strategies
 
+(date:2015-02-25)
+I'm noticing that it's harder to find traits which are _negatively_ correlated
+with copy number.  Maybe this is because I'm only choosing pairs which
+vary in 16S, which favors choosing pairs from high copy number organisms,
+since it's easier for them to change in 16S.  I could choose pairs
+based on a particular _fold_ change in 16S which might bias less towards seeing
+changes in K0's which are only found in high copy number organisms.
+This approach may also lower my power since I would have fewer pairs total,
+although, conversely, I would also have greater variation in the focal trait.
+
 #### Permutation test to calculate p-values ####
+(date:2015-02-25)
+The idea here is that I'll do one of three things:
+1.  a permutation of the trait table before choosing duely-mixed pairs
+2.  choose pairs just once, mixed for 16S copy number, and then
+    permute the trait table before calculating contrasts for the focal trait.
+3.  choose pairs just once, calculate the contrasts, and then permute the
+    contrast table before calculating correlations.
+
+By repeating this routine a large number of times, I can see if my estimate
+of $\tau$ deviates from the null distribution of $\tau$ by enough to call it
+statistically significant.  For a 0.05 threshold this is pretty easy.
+I can estimate the quantile of the null distribution with some accuracy
+with just 100 permutations,
+but if I want to use a much stricter p-value threshold I need to draw an
+increasing number of samples from the null (permuted) distribution.
+This could become a big problem for anything approaching a Bonferonni
+correction because of the huge number of comparisons being done.
+
+(Note: I have not done this work, because I think it is computationally
+infeasible.)
 
 #### False discovery rate with a permutation test ####
+(date:2015-02-24)
 Is it valid to:
 -  Assume that the null distribution of p-values for my (very mixed)
    population of traits is given by a permutation for every gene.
@@ -260,7 +291,10 @@ Basically what I'm proposing is to use the permutation test distribution from
 this figure (4?) to make a statement about my
 [false discover rate](https://en.wikipedia.org/wiki/False_discovery_rate).
 
+##### Simulation #####
+
 In simulation this seems to work as I expect.
+(See `ipynb/fdr_simulation.ipynb`.)
 I simulated a set of either correlated (or not) vectors of values
 (multivariate normal distribution).
 The distribution of correlations included 500 which were uncorrelated and
@@ -309,3 +343,61 @@ positives, since it must be around $\hat{q_\alpha} \times m$<!--_--> if
 $m = m_0$.
 Maybe we can put upper bounds on it given just knowledge of the number of tests
 which did _not_ come back as discoveries.
+
+(date:2015-02-25)
+Does this do anything to remove the effects of bias?  I think it does if
+I use the permutation test correctly.
+
+[Wikipedia](https://en.wikipedia.org/wiki/Median#Variance)
+has important things to say about this method:
+Since we only have a sample of the null distribution of p-values,
+our estimate of the FDR is subject to error.  Specifically,
+
+$$
+\sigma^2_{\hat{x_p}} = \frac{p (1 - p)}{n \, f(x_p)^2}
+$$
+
+$\hat{x_p}$ is our estimate for the cutoff which gives us a
+maximum false discovery rate of $p$;
+$x_p$ is the value of $x$ at the $p^\mathrm{th}$ quantile;
+and $f(x)$ is the PDF of the distribution.
+
+As our sample size goes way up, the standard deviation of this estimate goes down pretty
+quickly.  Also, the numerator is small when $p >> 0.5$ or $p << 0.5$, but the denominator is also
+small, (and presumably gets small faster) since it is linearly related to $f(x_p)^2$.
+
+Wikipedia also says it's asymptotically normal, which is nice to know.
+
+##### Use on real data #####
+I used this scheme on my gene table.
+(See `ipynb/2015-02-25.ipynb`.)
+The result is that I seem to have evidence for true positives, and
+the FDR limiting approach appears to be viable approach to find them.
+What's more, for two different runs (independent permutations of the
+contrast table), the values were slightly different, but the distribution
+was almost indistinguishable.  The 0.05 quartile of p-values under
+the null (permutation) model fell at 0.0097 the first time and 0.0058 the
+second.
+While this may seem like a large percentage change, in terms of a p-value
+cutoff for significance (which commonly swiches from 0.05 to 0.01), a
+2-fold change isn't that large.
+At the same time, and meaningfully,
+the 0.95 quartile of the null $\tau$ distribution went from 0.092 to 0.098
+over those same two runs
+(demonstrating how small changes in $\tau$ can have large (but no more
+functionally important) change in p-values.)
+
+This approach seems to give me some funky results.
+I'm noticing that it doesn't give many negative $\tau$'s.
+This is probably because the distribution of $\tau$ is biased towards the
+positive.
+It would be fairly straightforward to choose two thresholds, 2.5% and 97.5%
+quantiles, thereby picking even numbers of false positives from the positive
+and negative sides of the null distribution.
+I would not have to have any expectation of the distribution of true values to
+do so, I don't think.
+
+This works!
+And it respects the distribution of $\tau$ much better, which I'm happy about.
+It doesn't, hower, seem to do much for increasing our sensitivity to negative
+correlations.
